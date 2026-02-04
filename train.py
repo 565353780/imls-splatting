@@ -1,4 +1,4 @@
-import os, copy, sys, uuid, warnings, json, re
+import os, sys, uuid, warnings, json
 os.environ['PYOPENGL_PLATFORM'] = 'egl'
 import torch
 import random
@@ -12,7 +12,6 @@ from utils.general_utils import safe_state
 from argparse import ArgumentParser, Namespace
 from arguments import ModelParams, PipelineParams, OptimizationParams
 from utils.general_utils import inverse_sigmoid
-from refer import rasterize_set, eval_cd_dtu, eval_psnr_nerf, eval_cd_nerf
 
 torch.set_num_threads(10)
 warnings.filterwarnings("ignore")

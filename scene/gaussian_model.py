@@ -1,4 +1,4 @@
-import os, time
+import os
 import torch
 import numpy as np
 import open3d as o3d
@@ -36,12 +36,15 @@ class GaussianModel(nn.Module):
         self._feature    = torch.empty(0)
         self.scale_range = False
         self.dim_feature = 8
-        
+
         self.rendernet = rendernet(8, 16, self.dim_feature, 64, device='cuda', view_pe=3, fea_pe = 0, btn_freq=[0.3, 10.0],)
 
         self.optimizer = None
         self.spatial_lr_scale = 0
         self.opt = opt
+
+        self.axis_center = nn.Parameter(torch.zeros(3).cuda().detach())
+        return
 
     @property
     def get_xyz(self):
