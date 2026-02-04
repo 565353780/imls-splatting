@@ -27,7 +27,7 @@ def prepare_output_and_logger(args, expname):
         if expname != '':
             unique_str = expname
         args.model_path = os.path.join("./output/", unique_str)
-        
+
     print("Output folder: {}".format(args.model_path))
     os.makedirs(args.model_path, exist_ok = True)
     with open(os.path.join(args.model_path, "cfg_args"), 'w') as cfg_log_f:
@@ -44,9 +44,7 @@ def training(dataset, opt, saving_iterations, checkpoint_ply, expname):
         json.dump(opt.__dict__, json_file, indent=4)
     imlsplat = imlsplatting(opt.__dict__)
 
-    iter_start = torch.cuda.Event(enable_timing = True)
-    iter_end   = torch.cuda.Event(enable_timing = True)
-    bg         = torch.tensor([1, 1, 1] if dataset.white_background else [0, 0, 0], dtype=torch.float32, device="cuda")
+    bg = torch.tensor([1, 1, 1] if dataset.white_background else [0, 0, 0], dtype=torch.float32, device="cuda")
 
     first_iter       = 0
     viewpoint_stack  = None
@@ -56,9 +54,8 @@ def training(dataset, opt, saving_iterations, checkpoint_ply, expname):
 
     with torch.no_grad():
         meshdict = imlsplat(gaussians, scene.getTrainCameras()[0], bg, record='record/'+str(0), cameras=scene.getTrainCameras())
-    
-    for iteration in range(first_iter, opt.iterations + 1):  
-        iter_start.record()
+
+    for iteration in range(first_iter, opt.iterations + 1):
         gaussians.update_learning_rate(iteration)
 
         if not viewpoint_stack:
@@ -78,10 +75,9 @@ def training(dataset, opt, saving_iterations, checkpoint_ply, expname):
         loss_L1   = l1_loss(meshdict['image'][..., 0:3].permute(2,0,1), gt_image.permute(2,0,1))
         loss_ssim = fused_ssim(meshdict['image'][..., 0:3].permute(2,0,1).unsqueeze(0), gt_image.permute(2,0,1).unsqueeze(0))
         loss      = (1.0 - opt.lambda_image) * loss_L1 + opt.lambda_image * (1.0 - loss_ssim)
-            
+
         loss.backward()
 
-        iter_end.record()
         with torch.no_grad():
             ema_loss_for_log = 0.4 * loss.item() + 0.6 * ema_loss_for_log
             if iteration % 10 == 0:
